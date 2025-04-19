@@ -7,6 +7,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY;
+const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
 
 // Middleware
 app.use(cors());
@@ -22,15 +23,18 @@ app.get('/api/prices', async (req, res) => {
             include_24hr_change: 'true'
         };
 
-        // Add API key if available
+        const baseUrl = 'https://api.coingecko.com/api/v3/simple/price';
+
+        const headers = {};
+
         if (COINGECKO_API_KEY) {
-            params.x_cg_pro_api_key = COINGECKO_API_KEY;
+            headers['x-cg-demo-api-key'] = COINGECKO_API_KEY;
         }
 
-        const baseUrl = COINGECKO_API_KEY
- 'https://api.coingecko.com/api/v3/simple/price';
-
-        const response = await axios.get(baseUrl, { params });
+        const response = await axios.get(baseUrl, {
+            params,
+            headers
+        });
 
         res.json(response.data);
     } catch (err) {
@@ -51,15 +55,18 @@ app.get('/api/history/:coin', async (req, res) => {
             interval: 'daily'
         };
 
-        // Add API key if available
+        const baseUrl = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart`;
+
+        const headers = {};
+
         if (COINGECKO_API_KEY) {
-            params.x_cg_pro_api_key = COINGECKO_API_KEY;
+            headers['x-cg-demo-api-key'] = COINGECKO_API_KEY;
         }
 
-        const baseUrl = COINGECKO_API_KEY
-             `https://api.coingecko.com/api/v3/coins/${coin}/market_chart`;
-
-        const response = await axios.get(baseUrl, { params });
+        const response = await axios.get(baseUrl, {
+            params,
+            headers
+        });
 
         res.json(response.data);
     } catch (err) {
@@ -68,35 +75,37 @@ app.get('/api/history/:coin', async (req, res) => {
     }
 });
 
-// API: News (Mock)
-app.get('/api/news', (req, res) => {
-    const mockNews = [
-        {
-            id: 1,
-            title: "Regulatory Developments Shaping the Future of Crypto",
-            summary: "Learn how new regulations are affecting cryptocurrency markets worldwide.",
-            category: "NEWS",
-            color: "blue",
-            publishedAt: new Date().toISOString()
-        },
-        {
-            id: 2,
-            title: "How to Read Full Chart Patterns for Better Trading",
-            summary: "Master technical analysis with our comprehensive guide to chart patterns.",
-            category: "GUIDE",
-            color: "purple",
-            publishedAt: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-            id: 3,
-            title: "DeFi's Latest Yields Are Attracting New Investors",
-            summary: "Discover how decentralized finance is changing the landscape of investing.",
-            category: "DEFI",
-            color: "orange",
-            publishedAt: new Date(Date.now() - 172800000).toISOString()
-        }
-    ];
-    res.json(mockNews);
+// API: NewsAPI - Bitcoin News
+app.get('/api/news', async (req, res) => {
+    try {
+        if (!NEWSAPI_KEY) return res.status(500).json({ error: 'Missing NewsAPI key' });
+
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+            params: {
+                q: 'bitcoin',
+                language: 'en',
+                sortBy: 'publishedAt',
+                pageSize: 10
+            },
+            headers: {
+                'Authorization': NEWSAPI_KEY
+            }
+        });
+
+        const articles = response.data.articles.map(article => ({
+            title: article.title,
+            source: article.source.name,
+            description: article.description,
+            url: article.url,
+            image: article.urlToImage,
+            publishedAt: article.publishedAt
+        }));
+
+        res.json(articles);
+    } catch (err) {
+        console.error('Error fetching NewsAPI articles:', err);
+        res.status(500).json({ error: 'Failed to fetch NewsAPI articles' });
+    }
 });
 
 // API: Newsletter subscribe

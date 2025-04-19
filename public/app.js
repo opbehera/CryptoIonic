@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize charts
 let bitcoinChart, ethereumChart, dogecoinChart;
+const MAX_DATA_POINTS = 7;
 
 function initCharts() {
     bitcoinChart = createChart('bitcoinChart', 'Bitcoin Price', '#4e54ff', [42000, 45000, 48000, 51000, 49000, 53000, 58324]);
@@ -23,12 +24,12 @@ function createChart(id, label, borderColor, data) {
     return new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+            labels: generateInitialLabels(data.length),
             datasets: [{
                 label,
                 data,
                 borderColor,
-                backgroundColor: `${borderColor}1A`, // 10% transparent
+                backgroundColor: `${borderColor}1A`,
                 borderWidth: 2,
                 fill: true,
                 tension: 0.4,
@@ -36,6 +37,14 @@ function createChart(id, label, borderColor, data) {
             }]
         },
         options: getChartOptions()
+    });
+}
+
+function generateInitialLabels(count) {
+    const now = new Date();
+    return Array.from({ length: count }, (_, i) => {
+        const date = new Date(now.getTime() - (count - i - 1) * 60000); // minute intervals
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     });
 }
 
@@ -65,11 +74,11 @@ function getChartOptions() {
 }
 
 function setupEventListeners() {
-    document.querySelector('.sign-in').addEventListener('click', () => {
+    document.querySelector('.sign-in')?.addEventListener('click', () => {
         alert('Sign in functionality would be implemented here.');
     });
 
-    document.querySelector('.subscribe-form').addEventListener('submit', async function(e) {
+    document.querySelector('.subscribe-form')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = this.querySelector('input[type="email"]').value;
 
@@ -91,7 +100,7 @@ function setupEventListeners() {
         }
     });
 
-    document.querySelector('.btn.primary').addEventListener('click', () => {
+    document.querySelector('.btn.primary')?.addEventListener('click', () => {
         alert('Get started functionality would be implemented here.');
     });
 }
@@ -119,11 +128,12 @@ function startLivePriceUpdates() {
             parseFloat(card.textContent.replace('$', '').replace(',', ''))
         );
 
-        const changes = prices.map(p => p * (Math.random() * 0.04 - 0.02));
+        const changes = prices.map(() => (Math.random() * 2 - 1) * 0.5); // random change between -0.5 and +0.5
         prices.forEach((price, i) => {
-            const newPrice = price + changes[i];
-            cards[i].textContent = `$${newPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+            const newPrice = Math.max(price + changes[i], 0); // avoid negative prices
+            cards[i].textContent = `$${newPrice.toLocaleString(undefined, { maximumFractionDigits: 4 })}`;
         });
+        
 
         updateCharts(changes[0] > 0, changes[1] > 0, changes[2] > 0);
     }, 30000);
@@ -131,11 +141,19 @@ function startLivePriceUpdates() {
 
 function updateCharts(btcUp, ethUp, dogeUp) {
     const updateChart = (chart, up) => {
-        const data = chart.data.datasets[0].data;
-        const last = data[data.length - 1];
-        const change = up ? last * (1 + Math.random() * 0.01) : last * (1 - Math.random() * 0.01);
-        data.shift();
-        data.push(change);
+        const dataset = chart.data.datasets[0];
+        const labels = chart.data.labels;
+        const last = dataset.data[dataset.data.length - 1];
+        const newVal = parseFloat((last + ((Math.random() * 2 - 1) * 0.5)).toFixed(2)); // ±0.5 change
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (dataset.data.length >= MAX_DATA_POINTS) {
+            dataset.data.shift();
+            labels.shift();
+        }
+
+        dataset.data.push(parseFloat(newVal.toFixed(2)));
+        labels.push(timestamp);
         chart.update();
     };
 
@@ -153,18 +171,28 @@ async function fetchLatestNews() {
         console.error('Error fetching news:', error);
     }
 }
-
 function updateNewsCards(news) {
-    const cards = document.querySelectorAll('.news-card');
-    if (cards.length === news.length) {
-        news.forEach((item, i) => {
-            const card = cards[i];
-            card.querySelector('h3').textContent = item.title;
-            card.querySelector('p').textContent = item.summary;
-            card.querySelector('.tag').textContent = item.category;
-            card.className = `news-card ${item.color}`;
-        });
-    }
+    const container = document.querySelector('.dynamic-news-container');
+    if (!container) return;
+
+    container.innerHTML = ''; // Clear existing cards
+
+    news.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'news-card';
+
+        card.innerHTML = `
+            <div class="news-icon">
+                <img src="${item.image || 'default-news.jpg'}" alt="News">
+            </div>
+            <div class="tag">${item.source}</div>
+            <h3>${item.title}</h3>
+            <p>${item.description || 'No description available.'}</p>
+            <a href="${item.url}" target="_blank" class="read-more">Read more →</a>
+        `;
+
+        container.appendChild(card);
+    });
 }
 
 function setupMobileNavigation() {

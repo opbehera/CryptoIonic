@@ -6,36 +6,23 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY;
-const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
+const NEWS_API_KEY = process.env.NEWS_API_KEY || 'YOUR_NEWS_API_KEY'; // Store this in .env file
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API: Get latest prices
+// API: Get current prices (only 3 coins)
 app.get('/api/prices', async (req, res) => {
     try {
-        const params = {
-            ids: 'bitcoin,ethereum,dogecoin',
-            vs_currencies: 'usd',
-            include_24hr_change: 'true'
-        };
-
-        const baseUrl = 'https://api.coingecko.com/api/v3/simple/price';
-
-        const headers = {};
-
-        if (COINGECKO_API_KEY) {
-            headers['x-cg-demo-api-key'] = COINGECKO_API_KEY;
-        }
-
-        const response = await axios.get(baseUrl, {
-            params,
-            headers
+        const response = await axios.get('https://api.coingecko.com/api/v3/simple/price', {
+            params: {
+                ids: 'bitcoin,ethereum,dogecoin',
+                vs_currencies: 'inr', // Changed to INR for Indian Rupees
+                include_24hr_change: 'true'
+            }
         });
-
         res.json(response.data);
     } catch (err) {
         console.error('Error fetching prices:', err);
@@ -43,86 +30,138 @@ app.get('/api/prices', async (req, res) => {
     }
 });
 
-// API: Historical chart data
+// API: Historical chart data for 3 coins
 app.get('/api/history/:coin', async (req, res) => {
     try {
         const { coin } = req.params;
-        const { days } = req.query;
+        const { days = '7' } = req.query;
 
-        const params = {
-            vs_currency: 'usd',
-            days: days || '7',
-            interval: 'daily'
-        };
-
-        const baseUrl = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart`;
-
-        const headers = {};
-
-        if (COINGECKO_API_KEY) {
-            headers['x-cg-demo-api-key'] = COINGECKO_API_KEY;
+        const allowedCoins = ['bitcoin', 'ethereum', 'dogecoin'];
+        if (!allowedCoins.includes(coin)) {
+            return res.status(400).json({ error: 'Invalid coin' });
         }
 
-        const response = await axios.get(baseUrl, {
-            params,
-            headers
-        });
-
-        res.json(response.data);
-    } catch (err) {
-        console.error(`Error fetching history for ${req.params.coin}:`, err);
-        res.status(500).json({ error: `Failed to fetch history for ${req.params.coin}` });
-    }
-});
-
-// API: NewsAPI - Bitcoin News
-app.get('/api/news', async (req, res) => {
-    try {
-        if (!NEWSAPI_KEY) return res.status(500).json({ error: 'Missing NewsAPI key' });
-
-        const response = await axios.get('https://newsapi.org/v2/everything', {
+        const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${coin}/market_chart`, {
             params: {
-                q: 'bitcoin',
-                language: 'en',
-                sortBy: 'publishedAt',
-                pageSize: 10
-            },
-            headers: {
-                'Authorization': NEWSAPI_KEY
+                vs_currency: 'inr', // Changed to INR for Indian Rupees
+                days,
+                interval: 'daily'
             }
         });
 
-        const articles = response.data.articles.map(article => ({
-            title: article.title,
-            source: article.source.name,
-            description: article.description,
-            url: article.url,
-            image: article.urlToImage,
-            publishedAt: article.publishedAt
-        }));
+        const chartData = {
+            labels: response.data.prices.map(price => {
+                const date = new Date(price[0]);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            }),
+            prices: response.data.prices.map(price => price[1])
+        };
 
-        res.json(articles);
+        res.json(chartData);
     } catch (err) {
-        console.error('Error fetching NewsAPI articles:', err);
-        res.status(500).json({ error: 'Failed to fetch NewsAPI articles' });
+        console.error(`Error fetching history for ${req.params.coin}:`, err);
+        res.status(500).json({ error: 'Failed to fetch history data' });
     }
 });
 
-// API: Newsletter subscribe
-app.post('/api/subscribe', (req, res) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
+// NEW API: Get latest news for each cryptocurrency from India
+app.get('/api/news', async (req, res) => {
+    try {
+        // Create requests for news about each coin
+        const bitcoinNews = axios.get('https://newsapi.org/v2/top-headlines', {
+            params: {
+                country: 'in', // India
+                q: 'bitcoin',
+                apiKey: NEWS_API_KEY
+            }
+        });
+        
+        const ethereumNews = axios.get('https://newsapi.org/v2/top-headlines', {
+            params: {
+                country: 'in', // India
+                q: 'ethereum',
+                apiKey: NEWS_API_KEY
+            }
+        });
+        
+        const dogecoinNews = axios.get('https://newsapi.org/v2/top-headlines', {
+            params: {
+                country: 'in', // India
+                q: 'dogecoin',
+                apiKey: NEWS_API_KEY
+            }
+        });
 
-    // Mock saving to DB
-    res.json({ success: true, message: 'Successfully subscribed to newsletter' });
+        // Get all responses in parallel
+        const [bitcoinResponse, ethereumResponse, dogecoinResponse] = await Promise.all([
+            bitcoinNews,
+            ethereumNews,
+            dogecoinNews
+        ]);
+
+        // If not enough results from top headlines, use everything endpoint as fallback
+        const getBackupNews = async (keyword) => {
+            const response = await axios.get('https://newsapi.org/v2/everything', {
+                params: {
+                    q: `${keyword} AND (india OR indian OR "in")`,
+                    language: 'en',
+                    sortBy: 'publishedAt',
+                    pageSize: 5,
+                    apiKey: NEWS_API_KEY
+                }
+            });
+            return response.data.articles;
+        };
+
+        // Process news data and add fallback if needed
+        let bitcoin = bitcoinResponse.data.articles;
+        let ethereum = ethereumResponse.data.articles;
+        let dogecoin = dogecoinResponse.data.articles;
+
+        // If we don't have enough results, use the fallback
+        if (bitcoin.length < 3) {
+            bitcoin = await getBackupNews('bitcoin');
+        }
+        if (ethereum.length < 3) {
+            ethereum = await getBackupNews('ethereum');
+        }
+        if (dogecoin.length < 3) {
+            dogecoin = await getBackupNews('dogecoin');
+        }
+
+        // Format and slice the news to 5 articles max per coin
+        const formatNews = (articles, coinType) => {
+            return articles.slice(0, 5).map(article => ({
+                coinType,
+                source: article.source.name,
+                title: article.title,
+                description: article.description,
+                url: article.url,
+                publishedAt: article.publishedAt,
+                urlToImage: article.urlToImage
+            }));
+        };
+
+        // Combine all news
+        const combinedNews = {
+            bitcoin: formatNews(bitcoin, 'bitcoin'),
+            ethereum: formatNews(ethereum, 'ethereum'),
+            dogecoin: formatNews(dogecoin, 'dogecoin')
+        };
+
+        res.json(combinedNews);
+    } catch (err) {
+        console.error('Error fetching news:', err);
+        res.status(500).json({ error: 'Failed to fetch news', details: err.message });
+    }
 });
 
-// Catch-all route to serve frontend
+// Serve frontend
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server is running at http://localhost:${PORT}`);
 });

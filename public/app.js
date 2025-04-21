@@ -1,22 +1,21 @@
 // Wait for DOM to fully load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initCharts();
     setupEventListeners();
     fetchCryptoData();
     fetchLatestNews();
-    startLivePriceUpdates();
     setupMobileNavigation();
     setupScrollAnimations();
 });
 
 // Initialize charts
 let bitcoinChart, ethereumChart, dogecoinChart;
-const MAX_DATA_POINTS = 7;
+const MAX_DATA_POINTS = 12; // Reasonable number of data points for a static chart
 
 function initCharts() {
-    bitcoinChart = createChart('bitcoinChart', 'Bitcoin Price', '#4e54ff', [42000, 45000, 48000, 51000, 49000, 53000, 58324]);
-    ethereumChart = createChart('ethereumChart', 'Ethereum Price', '#6b3eff', [1400, 1600, 1800, 1700, 1900, 2000, 2115]);
-    dogecoinChart = createChart('dogecoinChart', 'Dogecoin Price', '#ff8c38', [0.14, 0.15, 0.17, 0.19, 0.18, 0.21, 0.23]);
+    bitcoinChart = createChart('bitcoinChart', 'Bitcoin Price', '#a15bfa', []); // Purple
+    ethereumChart = createChart('ethereumChart', 'Ethereum Price', '#8a41e8', []); // Darker purple
+    dogecoinChart = createChart('dogecoinChart', 'Dogecoin Price', '#c27ff9', []); // Lighter purple
 }
 
 function createChart(id, label, borderColor, data) {
@@ -24,7 +23,7 @@ function createChart(id, label, borderColor, data) {
     return new Chart(ctx, {
         type: 'line',
         data: {
-            labels: generateInitialLabels(data.length),
+            labels: [],
             datasets: [{
                 label,
                 data,
@@ -37,14 +36,6 @@ function createChart(id, label, borderColor, data) {
             }]
         },
         options: getChartOptions()
-    });
-}
-
-function generateInitialLabels(count) {
-    const now = new Date();
-    return Array.from({ length: count }, (_, i) => {
-        const date = new Date(now.getTime() - (count - i - 1) * 60000); // minute intervals
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     });
 }
 
@@ -67,8 +58,30 @@ function getChartOptions() {
             }
         },
         scales: {
-            x: { display: false },
-            y: { display: false }
+            x: { 
+                display: false,
+                grid: {
+                    display: true
+                },
+                ticks: {
+                    color: '#8b8fa3',
+                    maxRotation: 0,
+                    autoSkip: true,
+                    maxTicksLimit: 5
+                }
+            },
+            y: {
+                display: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.05)',
+                },
+                ticks: {
+                    color: '#8b8fa3',
+                    callback: function (value) {
+                        return '₹' + value.toLocaleString('en-IN');
+                    }
+                }
+            }
         }
     };
 }
@@ -78,7 +91,7 @@ function setupEventListeners() {
         alert('Sign in functionality would be implemented here.');
     });
 
-    document.querySelector('.subscribe-form')?.addEventListener('submit', async function(e) {
+    document.querySelector('.subscribe-form')?.addEventListener('submit', async function (e) {
         e.preventDefault();
         const email = this.querySelector('input[type="email"]').value;
 
@@ -109,85 +122,160 @@ async function fetchCryptoData() {
     try {
         const res = await fetch('/api/prices');
         const data = await res.json();
+        
         updatePriceDisplay(data);
+        
+        // Load static chart data based on current prices
+        loadStaticChartData(data);
     } catch (error) {
         console.error('Error fetching crypto prices:', error);
+        // Use fallback data if API fails
+        const fallbackData = {
+            bitcoin: { inr: 5000000 }, // Example values
+            ethereum: { inr: 300000 },
+            dogecoin: { inr: 5000 }
+        };
+        
+        updatePriceDisplay(fallbackData);
+        loadStaticChartData(fallbackData);
     }
 }
 
-function updatePriceDisplay(data) {
-    document.querySelector('.crypto-card:nth-child(1) .price').textContent = `$${data.bitcoin.usd.toLocaleString()}`;
-    document.querySelector('.crypto-card:nth-child(2) .price').textContent = `$${data.ethereum.usd.toLocaleString()}`;
-    document.querySelector('.crypto-card:nth-child(3) .price').textContent = `$${data.dogecoin.usd.toLocaleString()}`;
+function loadStaticChartData(priceData) {
+    // Create static data points that represent recent historical data
+    const now = new Date();
+    const hourLabels = [];
+    
+    // Create labels for the last MAX_DATA_POINTS hours
+    for (let i = MAX_DATA_POINTS - 1; i >= 0; i--) {
+        const time = new Date(now);
+        time.setHours(time.getHours() - i);
+        hourLabels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }
+    
+    // Generate realistic static data for Bitcoin
+    const btcBasePrice = priceData.bitcoin.inr;
+    const btcData = generateStaticPriceData(btcBasePrice);
+    
+    // Generate realistic static data for Ethereum
+    const ethBasePrice = priceData.ethereum.inr;
+    const ethData = generateStaticPriceData(ethBasePrice);
+    
+    // Generate realistic static data for Dogecoin
+    const dogeBasePrice = priceData.dogecoin.inr;
+    const dogeData = generateStaticPriceData(dogeBasePrice);
+    
+    // Update charts with the generated static data
+    updateStaticChart(bitcoinChart, btcData, hourLabels);
+    updateStaticChart(ethereumChart, ethData, hourLabels);
+    updateStaticChart(dogecoinChart, dogeData, hourLabels);
 }
 
-function startLivePriceUpdates() {
-    setInterval(() => {
-        const cards = document.querySelectorAll('.crypto-card .price');
-        const prices = Array.from(cards).map(card =>
-            parseFloat(card.textContent.replace('$', '').replace(',', ''))
-        );
-
-        const changes = prices.map(() => (Math.random() * 2 - 1) * 0.5); // random change between -0.5 and +0.5
-        prices.forEach((price, i) => {
-            const newPrice = Math.max(price + changes[i], 0); // avoid negative prices
-            cards[i].textContent = `$${newPrice.toLocaleString(undefined, { maximumFractionDigits: 4 })}`;
-        });
+function generateStaticPriceData(basePrice) {
+    const data = [];
+    let currentPrice = basePrice;
+    
+    // Generate prices that fluctuate around the base price
+    for (let i = 0; i < MAX_DATA_POINTS; i++) {
+        // Create realistic price fluctuations (both up and down)
+        const volatility = basePrice < 1000 ? 0.03 : (basePrice < 100000 ? 0.02 : 0.01);
+        const changePercent = (Math.random() - 0.5) * volatility * 2;
         
-
-        updateCharts(changes[0] > 0, changes[1] > 0, changes[2] > 0);
-    }, 30000);
+        // Apply the change percentage
+        currentPrice = currentPrice * (1 + changePercent);
+        
+        // Ensure we don't get too far from the base price
+        if (i > 0 && Math.abs(currentPrice - basePrice) / basePrice > 0.1) {
+            // Reset closer to base price if we've drifted too far
+            currentPrice = basePrice * (1 + (currentPrice > basePrice ? 0.08 : -0.08));
+        }
+        
+        data.push(parseFloat(currentPrice.toFixed(2)));
+    }
+    
+    return data;
 }
 
-function updateCharts(btcUp, ethUp, dogeUp) {
-    const updateChart = (chart, up) => {
-        const dataset = chart.data.datasets[0];
-        const labels = chart.data.labels;
-        const last = dataset.data[dataset.data.length - 1];
-        const newVal = parseFloat((last + ((Math.random() * 2 - 1) * 0.5)).toFixed(2)); // ±0.5 change
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function updateStaticChart(chart, priceData, labels) {
+    // Set the complete static data to the chart
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = priceData;
+    chart.update();
+}
 
-        if (dataset.data.length >= MAX_DATA_POINTS) {
-            dataset.data.shift();
-            labels.shift();
+function updatePriceDisplay(data) {
+    const cardElems = document.querySelectorAll('.crypto-card .price');
+    
+    // Format changes for INR
+    const formatINR = (value) => {
+        // Format with Indian thousand/lakh/crore system
+        if (value >= 10000000) { // 1 crore = 10,000,000
+            return `₹${(value / 10000000).toFixed(2)} Cr`;
+        } else if (value >= 100000) { // 1 lakh = 100,000
+            return `₹${(value / 100000).toFixed(2)} L`;
+        } else {
+            return `₹${value.toLocaleString('en-IN')}`;
         }
-
-        dataset.data.push(parseFloat(newVal.toFixed(2)));
-        labels.push(timestamp);
-        chart.update();
     };
 
-    updateChart(bitcoinChart, btcUp);
-    updateChart(ethereumChart, ethUp);
-    updateChart(dogecoinChart, dogeUp);
+    if (cardElems.length >= 3) {
+        cardElems[0].textContent = formatINR(data.bitcoin.inr);
+        cardElems[1].textContent = formatINR(data.ethereum.inr);
+        cardElems[2].textContent = formatINR(data.dogecoin.inr);
+    }
 }
 
 async function fetchLatestNews() {
     try {
         const res = await fetch('/api/news');
-        const news = await res.json();
-        updateNewsCards(news);
+        const newsData = await res.json();
+        
+        // Process all three cryptocurrency news categories
+        const allNews = [
+            ...processCryptoNews(newsData.bitcoin, 'blue'),
+            ...processCryptoNews(newsData.ethereum, 'purple'),
+            ...processCryptoNews(newsData.dogecoin, 'orange')
+        ];
+        
+        // Limit to 6 news total for display
+        updateNewsCards(allNews.slice(0, 6));
     } catch (error) {
         console.error('Error fetching news:', error);
     }
 }
+
+function processCryptoNews(newsItems, cardClass) {
+    // Get top 2 news from each cryptocurrency
+    return newsItems.slice(0, 2).map(item => {
+        return {
+            title: item.title,
+            description: item.description || 'No description available.',
+            source: item.source,
+            url: item.url,
+            image: item.urlToImage || 'default-news.jpg',
+            coinType: item.coinType,
+            cardClass: cardClass
+        };
+    });
+}
+
 function updateNewsCards(news) {
-    const container = document.querySelector('.dynamic-news-container');
+    const container = document.querySelector('.news-cards');
     if (!container) return;
 
     container.innerHTML = ''; // Clear existing cards
 
     news.forEach(item => {
         const card = document.createElement('div');
-        card.className = 'news-card';
+        card.className = `news-card ${item.cardClass}`;
 
         card.innerHTML = `
             <div class="news-icon">
-                <img src="${item.image || 'default-news.jpg'}" alt="News">
+                <img src="${item.image}" alt="News">
             </div>
-            <div class="tag">${item.source}</div>
+            <div class="tag">${item.coinType.charAt(0).toUpperCase() + item.coinType.slice(1)}</div>
             <h3>${item.title}</h3>
-            <p>${item.description || 'No description available.'}</p>
+            <p>${item.description}</p>
             <a href="${item.url}" target="_blank" class="read-more">Read more →</a>
         `;
 
@@ -196,7 +284,15 @@ function updateNewsCards(news) {
 }
 
 function setupMobileNavigation() {
-    // Implement toggle logic if needed
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const navMenu = document.querySelector('nav ul');
+    
+    if (mobileMenuToggle && navMenu) {
+        mobileMenuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileMenuToggle.classList.toggle('active');
+        });
+    }
 }
 
 function setupScrollAnimations() {
@@ -214,7 +310,7 @@ function setupScrollAnimations() {
 
 // Smooth scroll
 document.querySelectorAll('nav a').forEach(link => {
-    link.addEventListener('click', function(e) {
+    link.addEventListener('click', function (e) {
         e.preventDefault();
         const target = document.getElementById(this.getAttribute('href').substring(1));
         if (target) {

@@ -1,29 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cryptionic - Your Gateway to Cryptocurrency</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="./assets/CryptoIONIC.png" type="image/x-icon">
+
+    <link rel="stylesheet" href="styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <header>
         <div class="container">
             <div class="logo">
-                <img src="logo.png" alt="Cryptionic Logo">
                 <h1>Cryptionic</h1>
             </div>
             <nav>
                 <ul>
                     <li><a href="#" class="active">Home</a></li>
-                    <li><a href="#">Market</a></li>
-                    <li><a href="#">Trade</a></li>
-                    <li><a href="#">News</a></li>
-                    <li><a href="#">About</a></li>
+                    <li><a href="latest-news">News</a></li>
+                    <li><a href="why-choose">About</a></li>
                 </ul>
             </nav>
-            <button class="sign-in">Sign In</button>
         </div>
     </header>
 
@@ -33,8 +31,6 @@
                 <h1>Your Gateway to Cryptocurrency</h1>
                 <p>Stay informed with real-time market data, the latest news, and dynamic tools that help you make informed decisions.</p>
                 <div class="hero-buttons">
-                    <button class="btn primary">Get Started</button>
-                    <button class="btn secondary">Learn More</button>
                 </div>
             </div>
         </div>
@@ -44,31 +40,37 @@
         <div class="container">
             <h2>Market Overview</h2>
             <div class="crypto-cards">
+                <!-- Bitcoin -->
                 <div class="crypto-card">
                     <div class="crypto-info">
-                        <img src="bitcoin.png" alt="Bitcoin" class="crypto-icon">
+                        <img src="./assets/bitcoin.png" alt="Bitcoin" class="crypto-icon" />
                         <h3>Bitcoin</h3>
-                        <p class="price">$58,324.15</p>
+                        <p class="price" id="bitcoin-price">$0</p>
                     </div>
                     <canvas id="bitcoinChart"></canvas>
                 </div>
+
+                <!-- Ethereum -->
                 <div class="crypto-card">
                     <div class="crypto-info">
-                        <img src="ethereum.png" alt="Ethereum" class="crypto-icon">
+                        <img src="./assets/ethereum.png" alt="Ethereum" class="crypto-icon" />
                         <h3>Ethereum</h3>
-                        <p class="price">$2,115.30</p>
+                        <p class="price" id="ethereum-price">$0</p>
                     </div>
                     <canvas id="ethereumChart"></canvas>
                 </div>
+
+                <!-- Dogecoin -->
                 <div class="crypto-card">
                     <div class="crypto-info">
-                        <img src="dogecoin.png" alt="Dogecoin" class="crypto-icon">
+                        <img src="./assets/dogecoin.png" alt="Dogecoin" class="crypto-icon" />
                         <h3>Dogecoin</h3>
-                        <p class="price">$0.23</p>
+                        <p class="price" id="dogecoin-price">$0</p>
                     </div>
                     <canvas id="dogecoinChart"></canvas>
                 </div>
             </div>
+
             <div class="view-all">
                 <a href="#">View all markets</a>
             </div>
@@ -80,38 +82,36 @@
             <h2>Latest Crypto News</h2>
             <div class="news-cards dynamic-news-container">
                 <!-- News cards will be injected here -->
-            </div>            
             </div>
             <div class="view-all">
                 <a href="#">View all news</a>
             </div>
         </div>
     </section>
-
     <section class="why-choose">
         <div class="container">
             <h2>Why Choose Cryptionic</h2>
             <div class="features">
                 <div class="feature">
                     <div class="feature-icon blue">
-                        <img src="secure-icon.png" alt="Security">
+                        <img src="secure-icon.png" alt="Security" />
                     </div>
-                    <h3>Bank-Grade Security</h3>
-                    <p>Your assets are protected by industry-leading security protocols and regular audits.</p>
+                    <h3>Comprehensive Market Data</h3>
+                    <p>Get real-time cryptocurrency prices, market trends, and insights all in one place.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon purple">
-                        <img src="chart-icon.png" alt="Charts">
+                        <img src="chart-icon.png" alt="Charts" />
                     </div>
-                    <h3>Advanced Analytics</h3>
-                    <p>Access powerful trading tools and real-time data to make informed investment decisions.</p>
+                    <h3>Latest News Updates</h3>
+                    <p>Stay informed with the latest crypto news and updates from trusted sources.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon green">
-                        <img src="support-icon.png" alt="Support">
+                        <img src="ui-icon.png" alt="UI" />
                     </div>
-                    <h3>24/7 Expert Support</h3>
-                    <p>Our dedicated team is always available to assist you with any questions or concerns.</p>
+                    <h3>Simple and Intuitive UI</h3>
+                    <p>Enjoy a clean, user-friendly interface designed for seamless navigation and usability.</p>
                 </div>
             </div>
         </div>
@@ -123,7 +123,7 @@
                 <h2>Stay Updated</h2>
                 <p>Subscribe to our newsletter for the latest crypto news, market insights, and exclusive updates.</p>
                 <form class="subscribe-form">
-                    <input type="email" placeholder="Enter your email address">
+                    <input type="email" placeholder="Enter your email address" />
                     <button type="submit">Subscribe</button>
                 </form>
             </div>
@@ -134,9 +134,8 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
-                    <img src="logo.png" alt="Cryptionic Logo">
                     <h2>Cryptionic</h2>
-                    <p>Your trusted crypto companion since 2023.</p>
+                    <p>Your trusted crypto companion since 2025.</p>
                 </div>
                 <div class="footer-links">
                     <div class="link-group">
@@ -144,8 +143,6 @@
                         <ul>
                             <li><a href="#">Home</a></li>
                             <li><a href="#">About Us</a></li>
-                            <li><a href="#">Features</a></li>
-                            <li><a href="#">Pricing</a></li>
                         </ul>
                     </div>
                     <div class="link-group">
@@ -168,7 +165,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2025 Cryptionic. All rights reserved.</p>
+                <p>© 2025 Cryptionic. All rights reserved. Made by OmPrasad Behera (22BCE10117)</p>
                 <div class="legal-links">
                     <a href="#">Privacy Policy</a>
                     <a href="#">Terms of Service</a>

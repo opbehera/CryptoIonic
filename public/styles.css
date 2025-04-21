@@ -1,14 +1,14 @@
 :root {
-    --primary-color: #4e54ff;
-    --secondary-color: #6b3eff;
-    --tertiary-color: #ff8c38;
+    --primary-color: #a15bfa; /* Updated to purple */
+    --secondary-color: #8a41e8; /* Updated secondary purple */
+    --tertiary-color: #c27ff9; /* Lighter purple */
     --dark-bg: #0a0e17;
     --card-bg: #141b2d;
     --text-light: #ffffff;
     --text-muted: #8b8fa3;
-    --blue-card: #1a2b45;
-    --purple-card: #2a1a45;
-    --orange-card: #45301a;
+    --blue-card: #281a45; /* Changed to dark purple */
+    --purple-card: #3a1a60; /* More vibrant purple */
+    --orange-card: #4a1a70; /* Another shade of purple */
 }
 
 * {
@@ -60,17 +60,24 @@ header .container {
 .logo {
     display: flex;
     align-items: center;
-}
-
-.logo img {
-    height: 35px;
-    margin-right: 10px;
+    gap: 12px;
 }
 
 .logo h1 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 700;
-    color: var(--text-light);
+    background: linear-gradient(to right, #ffffff, #a15bfa); /* Gradient from white to purple */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .logo h1 {
+        font-size: 1.5rem;
+    }
 }
 
 nav ul {
@@ -114,12 +121,12 @@ nav ul li a.active::after {
 }
 
 .sign-in:hover {
-    background-color: #3942d6;
+    background-color: #8a41e8; /* Darker purple on hover */
 }
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(to bottom, #0a0e17, #141b2d);
+    background: linear-gradient(to bottom, #0a0e17, #1a1433); /* Updated gradient to be more purple-tinted */
     padding: 150px 0 100px;
     text-align: center;
 }
@@ -162,7 +169,7 @@ nav ul li a.active::after {
 }
 
 .btn.primary:hover {
-    background-color: #3942d6;
+    background-color: #8a41e8; /* Darker purple on hover */
 }
 
 .btn.secondary {
@@ -246,7 +253,7 @@ canvas {
 /* Latest News Section */
 .latest-news {
     padding: 80px 0;
-    background-color: rgba(20, 27, 45, 0.3);
+    background-color: rgba(26, 20, 51, 0.3); /* More purple tint */
 }
 
 .news-cards {
@@ -305,17 +312,17 @@ canvas {
 }
 
 .news-card.blue .tag {
-    background-color: rgba(78, 84, 255, 0.2);
+    background-color: rgba(161, 91, 250, 0.2); /* Updated to purple */
     color: var(--primary-color);
 }
 
 .news-card.purple .tag {
-    background-color: rgba(107, 62, 255, 0.2);
+    background-color: rgba(138, 65, 232, 0.2); /* Updated to darker purple */
     color: var(--secondary-color);
 }
 
 .news-card.orange .tag {
-    background-color: rgba(255, 140, 56, 0.2);
+    background-color: rgba(194, 127, 249, 0.2); /* Updated to lighter purple */
     color: var(--tertiary-color);
 }
 
@@ -386,15 +393,15 @@ canvas {
 }
 
 .feature-icon.blue {
-    background: linear-gradient(135deg, rgba(78, 84, 255, 0.2), rgba(78, 84, 255, 0.1));
+    background: linear-gradient(135deg, rgba(161, 91, 250, 0.2), rgba(161, 91, 250, 0.1)); /* Updated to purple */
 }
 
 .feature-icon.purple {
-    background: linear-gradient(135deg, rgba(107, 62, 255, 0.2), rgba(107, 62, 255, 0.1));
+    background: linear-gradient(135deg, rgba(138, 65, 232, 0.2), rgba(138, 65, 232, 0.1)); /* Updated to darker purple */
 }
 
 .feature-icon.green {
-    background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.1));
+    background: linear-gradient(135deg, rgba(194, 127, 249, 0.2), rgba(194, 127, 249, 0.1)); /* Updated to lighter purple */
 }
 
 .feature h3 {
@@ -408,7 +415,7 @@ canvas {
 /* Newsletter Section */
 .newsletter {
     padding: 60px 0;
-    background: linear-gradient(135deg, #1a2345, #151c2b);
+    background: linear-gradient(135deg, #251a45, #1e1433); /* Updated to purple gradient */
     border-radius: 12px;
     margin: 40px 20px;
 }
@@ -461,7 +468,7 @@ canvas {
 }
 
 .subscribe-form button:hover {
-    background-color: #3942d6;
+    background-color: #8a41e8; /* Darker purple on hover */
 }
 
 /* Footer */
@@ -483,14 +490,13 @@ footer {
     align-items: flex-start;
 }
 
-.footer-logo img {
-    height: 40px;
-    margin-bottom: 15px;
-}
-
 .footer-logo h2 {
     font-size: 1.5rem;
     margin-bottom: 10px;
+    background: linear-gradient(to right, #ffffff, #a15bfa); /* Gradient for logo text */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .footer-logo p {

@@ -64,7 +64,7 @@ app.get('/api/history/:coin', async (req, res) => {
     }
 });
 
-// NEW API: Get latest news for each cryptocurrency from India
+// NEWS API: Get latest crypto news from India
 app.get('/api/news', async (req, res) => {
     try {
         // Create requests for news about each coin
@@ -156,7 +156,12 @@ app.get('/api/news', async (req, res) => {
     }
 });
 
-// Serve frontend
+// Serve the about page
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'about.html'));
+});
+
+// Catch-all route for the main page (should be the last route defined)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

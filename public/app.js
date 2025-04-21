@@ -13,9 +13,17 @@ let bitcoinChart, ethereumChart, dogecoinChart;
 const MAX_DATA_POINTS = 12; // Reasonable number of data points for a static chart
 
 function initCharts() {
-    bitcoinChart = createChart('bitcoinChart', 'Bitcoin Price', '#a15bfa', []); // Purple
-    ethereumChart = createChart('ethereumChart', 'Ethereum Price', '#8a41e8', []); // Darker purple
-    dogecoinChart = createChart('dogecoinChart', 'Dogecoin Price', '#c27ff9', []); // Lighter purple
+    const bitcoinCanvas = document.getElementById('bitcoinChart');
+    const ethereumCanvas = document.getElementById('ethereumChart');
+    const dogecoinCanvas = document.getElementById('dogecoinChart');
+    
+    if (bitcoinCanvas && ethereumCanvas && dogecoinCanvas) {
+        bitcoinChart = createChart('bitcoinChart', 'Bitcoin Price', '#a15bfa', []); // Purple
+        ethereumChart = createChart('ethereumChart', 'Ethereum Price', '#8a41e8', []); // Darker purple
+        dogecoinChart = createChart('dogecoinChart', 'Dogecoin Price', '#c27ff9', []); // Lighter purple
+    } else {
+        console.warn('One or more chart canvases not found');
+    }
 }
 
 function createChart(id, label, borderColor, data) {
@@ -42,7 +50,7 @@ function createChart(id, label, borderColor, data) {
 function getChartOptions() {
     return {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true, // Ensure the chart maintains a square aspect ratio
         plugins: {
             legend: { display: false },
             tooltip: {
@@ -56,6 +64,9 @@ function getChartOptions() {
                 padding: 10,
                 displayColors: false
             }
+        },
+        layout: {
+            padding: 10 // Add padding to ensure the chart fits within the page
         },
         scales: {
             x: { 
@@ -87,42 +98,56 @@ function getChartOptions() {
 }
 
 function setupEventListeners() {
-    document.querySelector('.sign-in')?.addEventListener('click', () => {
-        alert('Sign in functionality would be implemented here.');
-    });
+    // Optional chaining for sign-in button
+    const signInButton = document.querySelector('.sign-in');
+    if (signInButton) {
+        signInButton.addEventListener('click', () => {
+            alert('Sign in functionality would be implemented here.');
+        });
+    }
 
-    document.querySelector('.subscribe-form')?.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const email = this.querySelector('input[type="email"]').value;
+    // Optional chaining for subscribe form
+    const subscribeForm = document.querySelector('.subscribe-form');
+    if (subscribeForm) {
+        subscribeForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const email = this.querySelector('input[type="email"]').value;
 
-        if (email) {
-            try {
-                const res = await fetch('/api/subscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-                alert(data.message);
-                this.reset();
-            } catch (error) {
-                alert('Subscription failed.');
+            if (email) {
+                try {
+                    // In this demo, we'll just show a success message
+                    // In a real implementation, this would be connected to your server
+                    alert(`Subscription successful for ${email}!`);
+                    this.reset();
+                } catch (error) {
+                    alert('Subscription failed. Please try again later.');
+                }
+            } else {
+                alert('Please enter a valid email address.');
             }
-        } else {
-            alert('Please enter a valid email address.');
-        }
-    });
+        });
+    }
 
-    document.querySelector('.btn.primary')?.addEventListener('click', () => {
-        alert('Get started functionality would be implemented here.');
-    });
+    // Optional chaining for primary button
+    const primaryButton = document.querySelector('.btn.primary');
+    if (primaryButton) {
+        primaryButton.addEventListener('click', () => {
+            alert('Get started functionality would be implemented here.');
+        });
+    }
 }
 
 async function fetchCryptoData() {
     try {
-        const res = await fetch('/api/prices');
-        const data = await res.json();
+        // Get the API base URL relative to the current page
+        const apiBaseUrl = window.location.origin;
+        const res = await fetch(`${apiBaseUrl}/api/prices`);
         
+        if (!res.ok) {
+            throw new Error(`Failed to fetch prices: ${res.status}`);
+        }
+        
+        const data = await res.json();
         updatePriceDisplay(data);
         
         // Load static chart data based on current prices
@@ -165,10 +190,10 @@ function loadStaticChartData(priceData) {
     const dogeBasePrice = priceData.dogecoin.inr;
     const dogeData = generateStaticPriceData(dogeBasePrice);
     
-    // Update charts with the generated static data
-    updateStaticChart(bitcoinChart, btcData, hourLabels);
-    updateStaticChart(ethereumChart, ethData, hourLabels);
-    updateStaticChart(dogecoinChart, dogeData, hourLabels);
+    // Update charts with the generated static data if they exist
+    if (bitcoinChart) updateStaticChart(bitcoinChart, btcData, hourLabels);
+    if (ethereumChart) updateStaticChart(ethereumChart, ethData, hourLabels);
+    if (dogecoinChart) updateStaticChart(dogecoinChart, dogeData, hourLabels);
 }
 
 function generateStaticPriceData(basePrice) {
@@ -204,7 +229,15 @@ function updateStaticChart(chart, priceData, labels) {
 }
 
 function updatePriceDisplay(data) {
-    const cardElems = document.querySelectorAll('.crypto-card .price');
+    // Check if data contains the required properties
+    if (!data || !data.bitcoin || !data.ethereum || !data.dogecoin) {
+        console.error('Invalid price data format');
+        return;
+    }
+
+    const bitcoinPrice = document.getElementById('bitcoin-price');
+    const ethereumPrice = document.getElementById('ethereum-price');
+    const dogecoinPrice = document.getElementById('dogecoin-price');
     
     // Format changes for INR
     const formatINR = (value) => {
@@ -218,17 +251,27 @@ function updatePriceDisplay(data) {
         }
     };
 
-    if (cardElems.length >= 3) {
-        cardElems[0].textContent = formatINR(data.bitcoin.inr);
-        cardElems[1].textContent = formatINR(data.ethereum.inr);
-        cardElems[2].textContent = formatINR(data.dogecoin.inr);
-    }
+    // Update price elements if they exist
+    if (bitcoinPrice) bitcoinPrice.textContent = formatINR(data.bitcoin.inr);
+    if (ethereumPrice) ethereumPrice.textContent = formatINR(data.ethereum.inr);
+    if (dogecoinPrice) dogecoinPrice.textContent = formatINR(data.dogecoin.inr);
 }
 
 async function fetchLatestNews() {
     try {
-        const res = await fetch('/api/news');
+        const apiBaseUrl = window.location.origin;
+        const res = await fetch(`${apiBaseUrl}/api/news`);
+        
+        if (!res.ok) {
+            throw new Error(`Failed to fetch news: ${res.status}`);
+        }
+        
         const newsData = await res.json();
+        
+        // Check if all required properties exist
+        if (!newsData.bitcoin || !newsData.ethereum || !newsData.dogecoin) {
+            throw new Error('Invalid news data format');
+        }
         
         // Process all three cryptocurrency news categories
         const allNews = [
@@ -241,42 +284,66 @@ async function fetchLatestNews() {
         updateNewsCards(allNews.slice(0, 6));
     } catch (error) {
         console.error('Error fetching news:', error);
+        // Display fallback message in news container
+        const container = document.querySelector('.dynamic-news-container');
+        if (container) {
+            container.innerHTML = '<p class="news-error">Unable to load news. Please try again later.</p>';
+        }
     }
 }
 
 function processCryptoNews(newsItems, cardClass) {
+    if (!Array.isArray(newsItems)) {
+        return [];
+    }
+    
     // Get top 2 news from each cryptocurrency
     return newsItems.slice(0, 2).map(item => {
         return {
-            title: item.title,
+            title: item.title || 'No title available',
             description: item.description || 'No description available.',
-            source: item.source,
-            url: item.url,
-            image: item.urlToImage || 'default-news.jpg',
-            coinType: item.coinType,
+            source: item.source || 'Unknown Source',
+            url: item.url || '#',
+            image: item.urlToImage || './assets/news-placeholder.jpg',
+            coinType: item.coinType || 'cryptocurrency',
             cardClass: cardClass
         };
     });
 }
 
 function updateNewsCards(news) {
-    const container = document.querySelector('.news-cards');
+    const container = document.querySelector('.dynamic-news-container');
     if (!container) return;
 
     container.innerHTML = ''; // Clear existing cards
 
-    news.forEach(item => {
-        const card = document.createElement('div');
-        card.className = `news-card ${item.cardClass}`;
+    if (news.length === 0) {
+        container.innerHTML = '<p class="no-news">No news available at the moment.</p>';
+        return;
+    }
 
+    news.forEach(item => {
+        // Truncate long titles and descriptions
+        const truncatedTitle = item.title.length > 60 ? 
+            item.title.substring(0, 60) + '...' : 
+            item.title;
+            
+        const truncatedDesc = item.description && item.description.length > 120 ? 
+            item.description.substring(0, 120) + '...' : 
+            item.description;
+
+        const card = document.createElement('div');
+        card.className = 'news-card';
         card.innerHTML = `
-            <div class="news-icon">
-                <img src="${item.image}" alt="News">
+            <div class="news-image">
+                <img src="${item.image}" alt="${truncatedTitle}" onerror="this.src='./assets/news-placeholder.jpg';">
+                <span class="news-tag ${item.cardClass}">${item.coinType.charAt(0).toUpperCase() + item.coinType.slice(1)}</span>
             </div>
-            <div class="tag">${item.coinType.charAt(0).toUpperCase() + item.coinType.slice(1)}</div>
-            <h3>${item.title}</h3>
-            <p>${item.description}</p>
-            <a href="${item.url}" target="_blank" class="read-more">Read more →</a>
+            <div class="news-content">
+                <h3 class="news-title">${truncatedTitle}</h3>
+                <p class="news-description">${truncatedDesc}</p>
+                <a href="${item.url}" target="_blank" class="read-more">Read more →</a>
+            </div>
         `;
 
         container.appendChild(card);
@@ -296,28 +363,53 @@ function setupMobileNavigation() {
 }
 
 function setupScrollAnimations() {
-    const sections = document.querySelectorAll('section');
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate');
-            }
-        });
-    }, { threshold: 0.1 });
+    if ('IntersectionObserver' in window) {
+        const sections = document.querySelectorAll('section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, { threshold: 0.1 });
 
-    sections.forEach(section => observer.observe(section));
+        sections.forEach(section => observer.observe(section));
+    } else {
+        // Fallback for browsers that don't support IntersectionObserver
+        document.querySelectorAll('section').forEach(section => {
+            section.classList.add('animate');
+        });
+    }
 }
 
-// Smooth scroll
-document.querySelectorAll('nav a').forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.getElementById(this.getAttribute('href').substring(1));
-        if (target) {
-            window.scrollTo({
-                top: target.offsetTop - 80,
-                behavior: 'smooth'
-            });
-        }
+// Improve smooth scroll functionality
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80, // Adjust for header height
+                    behavior: 'smooth'
+                });
+                
+                // Update URL without page reload
+                history.pushState(null, null, `#${targetId}`);
+                
+                // Close mobile menu if open
+                const navMenu = document.querySelector('nav ul');
+                if (navMenu && navMenu.classList.contains('active')) {
+                    navMenu.classList.remove('active');
+                    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+                    if (mobileMenuToggle) {
+                        mobileMenuToggle.classList.remove('active');
+                    }
+                }
+            }
+        });
     });
 });

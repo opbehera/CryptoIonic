@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cryptionic - Your Gateway to Cryptocurrency</title>
     <link rel="icon" href="./assets/CryptoIONIC.png" type="image/x-icon">
-
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
@@ -17,9 +16,9 @@
             </div>
             <nav>
                 <ul>
-                    <li><a href="#" class="active">Home</a></li>
-                    <li><a href="latest-news">News</a></li>
-                    <li><a href="why-choose">About</a></li>
+                    <li><a href="/" class="active">Home</a></li>
+                    <li><a href="#latest-news">News</a></li>
+                    <li><a href="about.html">About</a></li>
                 </ul>
             </nav>
         </div>
@@ -45,7 +44,7 @@
                     <div class="crypto-info">
                         <img src="./assets/bitcoin.png" alt="Bitcoin" class="crypto-icon" />
                         <h3>Bitcoin</h3>
-                        <p class="price" id="bitcoin-price">$0</p>
+                        <p class="price" id="bitcoin-price">₹0</p>
                     </div>
                     <canvas id="bitcoinChart"></canvas>
                 </div>
@@ -55,7 +54,7 @@
                     <div class="crypto-info">
                         <img src="./assets/ethereum.png" alt="Ethereum" class="crypto-icon" />
                         <h3>Ethereum</h3>
-                        <p class="price" id="ethereum-price">$0</p>
+                        <p class="price" id="ethereum-price">₹0</p>
                     </div>
                     <canvas id="ethereumChart"></canvas>
                 </div>
@@ -65,7 +64,7 @@
                     <div class="crypto-info">
                         <img src="./assets/dogecoin.png" alt="Dogecoin" class="crypto-icon" />
                         <h3>Dogecoin</h3>
-                        <p class="price" id="dogecoin-price">$0</p>
+                        <p class="price" id="dogecoin-price">₹0</p>
                     </div>
                     <canvas id="dogecoinChart"></canvas>
                 </div>
@@ -77,7 +76,7 @@
         </div>
     </section>
 
-    <section class="latest-news">
+    <section class="latest-news" id="latest-news">
         <div class="container">
             <h2>Latest Crypto News</h2>
             <div class="news-cards dynamic-news-container">
@@ -88,27 +87,27 @@
             </div>
         </div>
     </section>
-    <section class="why-choose">
+    <section class="why-choose" id="why-choose">
         <div class="container">
             <h2>Why Choose Cryptionic</h2>
             <div class="features">
                 <div class="feature">
                     <div class="feature-icon blue">
-                        <img src="secure-icon.png" alt="Security" />
+                        <img src="./assets/market.png" alt="Security" />
                     </div>
                     <h3>Comprehensive Market Data</h3>
                     <p>Get real-time cryptocurrency prices, market trends, and insights all in one place.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon purple">
-                        <img src="chart-icon.png" alt="Charts" />
+                        <img src="./assets/news.png" alt="Charts" />
                     </div>
                     <h3>Latest News Updates</h3>
                     <p>Stay informed with the latest crypto news and updates from trusted sources.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon green">
-                        <img src="ui-icon.png" alt="UI" />
+                        <img src="./assets/design.png" alt="UI" />
                     </div>
                     <h3>Simple and Intuitive UI</h3>
                     <p>Enjoy a clean, user-friendly interface designed for seamless navigation and usability.</p>
@@ -141,8 +140,8 @@
                     <div class="link-group">
                         <h3>Quick Links</h3>
                         <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="#">About Us</a></li>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="about.html">About Us</a></li>
                         </ul>
                     </div>
                     <div class="link-group">
